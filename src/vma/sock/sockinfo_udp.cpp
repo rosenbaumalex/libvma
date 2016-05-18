@@ -330,36 +330,6 @@ inline int sockinfo_udp::rx_wait(bool blocking)
 	return -1;
 }
 
-const char * setsockopt_so_opt_to_str(int opt)
-{
-	switch (opt) {
-	case SO_REUSEADDR: 		return "SO_REUSEADDR";
-	case SO_BROADCAST:	 	return "SO_BROADCAST";
-	case SO_RCVBUF:			return "SO_RCVBUF";
-	case SO_SNDBUF:			return "SO_SNDBUF";
-	case SO_TIMESTAMP:		return "SO_TIMESTAMP";
-	case SO_TIMESTAMPNS:		return "SO_TIMESTAMPNS";
-	case SO_BINDTODEVICE:		return "SO_BINDTODEVICE";
-	default:			break;
-	}
-	return "UNKNOWN SO opt";
-}
-
-
-const char * setsockopt_ip_opt_to_str(int opt)
-{
-	switch (opt) {
-	case IP_MULTICAST_IF:		return "IP_MULTICAST_IF";
-	case IP_MULTICAST_TTL:		return "IP_MULTICAST_TTL";
-	case IP_MULTICAST_LOOP: 	return "IP_MULTICAST_LOOP";
-	case IP_ADD_MEMBERSHIP: 	return "IP_ADD_MEMBERSHIP";    
-	case IP_DROP_MEMBERSHIP:	return "IP_DROP_MEMBERSHIP";
-	default:			break;
-	}
-	return "UNKNOWN IP opt";
-}
-
-
 
 // Throttle the amount of ring polling we do (remember last time we check for receive packets)
 tscval_t g_si_tscv_last_poll = 0;
@@ -742,7 +712,7 @@ int sockinfo_udp::setsockopt(int __level, int __optname, __const void *__optval,
 						m_loops_timer.set_timeout_msec(tv->tv_sec*1000 + (tv->tv_usec ? tv->tv_usec/1000 : 0));
 					else
 						m_loops_timer.set_timeout_msec(-1);
-					si_udp_logdbg("SOL_SOCKET: SO_RCVTIMEO=%d", m_loops_timer.get_timeout_msec());
+					si_udp_logdbg("SOL_SOCKET: %s=%d", setsockopt_so_opt_to_str(__optname), m_loops_timer.get_timeout_msec());
 				}
 				else {
 					si_udp_logdbg("SOL_SOCKET, %s=\"???\" - NOT HANDLED, optval == NULL", setsockopt_so_opt_to_str(__optname));
@@ -788,7 +758,7 @@ int sockinfo_udp::setsockopt(int __level, int __optname, __const void *__optval,
 					}
 
 					m_n_tsing_flags  = val;
-					si_udp_logdbg("SOL_SOCKET, SO_TIMESTAMPING=%u", m_n_tsing_flags);
+					si_udp_logdbg("SOL_SOCKET, %s=%u", setsockopt_so_opt_to_str(__optname), m_n_tsing_flags);
 				}
 				else {
 					si_udp_logdbg("SOL_SOCKET, %s=\"???\" - NOT HANDLED, optval == NULL", setsockopt_so_opt_to_str(__optname));

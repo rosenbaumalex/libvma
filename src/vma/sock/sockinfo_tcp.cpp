@@ -3102,20 +3102,20 @@ int sockinfo_tcp::setsockopt(int __level, int __optname,
 		switch(__optname) {
 		case SO_REUSEADDR:
 			val = *(int *)__optval;
-			si_tcp_logdbg("(SO_REUSEADDR) val: %d", val);
 			if (val) 
 				m_pcb.so_options |= SOF_REUSEADDR;
 			else
 				m_pcb.so_options &= ~SOF_REUSEADDR;
 			ret = SOCKOPT_HANDLE_BY_OS; //SO_REUSEADDR is also relevant on OS
+			si_tcp_logdbg("SOL_SOCKET, %s=%d", setsockopt_so_opt_to_str(__optname), val);
 			break;
 		case SO_KEEPALIVE:
 			val = *(int *)__optval;
-			si_tcp_logdbg("(SO_KEEPALIVE) val: %d", val);
 			if (val) 
 				m_pcb.so_options |= SOF_KEEPALIVE;
 			else
 				m_pcb.so_options &= ~SOF_KEEPALIVE;
+			si_tcp_logdbg("SOL_SOCKET, %s=%d", setsockopt_so_opt_to_str(__optname), val);
 			break;
 		case SO_RCVBUF:
 			val = MIN(*(int *)__optval, safe_mce_sys().sysctl_reader.get_net_core_rmem_max());
@@ -3123,14 +3123,14 @@ int sockinfo_tcp::setsockopt(int __level, int __optname,
 			m_rcvbuff_max = MAX(2 * m_pcb.mss, 2 * val);
 
 			fit_rcv_wnd(!is_connected());
-			si_tcp_logdbg("setsockopt SO_RCVBUF: %d", m_rcvbuff_max);
+			si_tcp_logdbg("SOL_SOCKET, %s=%d, rcvbuff_max=%d", setsockopt_so_opt_to_str(__optname), *(int *)__optval, m_rcvbuff_max);
 			break;
 		case SO_SNDBUF:
 			val = MIN(*(int *)__optval, safe_mce_sys().sysctl_reader.get_net_core_wmem_max());
 			// OS allocates double the size of memory requested by the application - not sure we need it.
 			m_sndbuff_max = MAX(2 * m_pcb.mss, 2 * val);
 			fit_snd_bufs(m_sndbuff_max);
-			si_tcp_logdbg("setsockopt SO_SNDBUF: %d", m_sndbuff_max);
+			si_tcp_logdbg("SOL_SOCKET, %s=%d, sndbuff_max=%d", setsockopt_so_opt_to_str(__optname), *(int *)__optval, m_sndbuff_max);
 			break;
 		case SO_LINGER:
 			if (__optlen < sizeof(struct linger)) {
@@ -3138,7 +3138,7 @@ int sockinfo_tcp::setsockopt(int __level, int __optname,
 				break;
 			}
 			m_linger = *(struct linger*)__optval;
-			si_tcp_logdbg("setsockopt SO_LINGER: l_onoff = %d, l_linger = %d", m_linger.l_onoff, m_linger.l_linger);
+			si_tcp_logdbg("SOL_SOCKET, %s l_onoff = %d, l_linger = %d", setsockopt_so_opt_to_str(__optname), m_linger.l_onoff, m_linger.l_linger);
 			break;
 		case SO_RCVTIMEO:
 		{
@@ -3151,7 +3151,7 @@ int sockinfo_tcp::setsockopt(int __level, int __optname,
 				m_loops_timer.set_timeout_msec(tv->tv_sec*1000 + (tv->tv_usec ? tv->tv_usec/1000 : 0));
 			else
 				m_loops_timer.set_timeout_msec(-1);
-			si_tcp_logdbg("SOL_SOCKET: SO_RCVTIMEO=%d", m_loops_timer.get_timeout_msec());
+			si_tcp_logdbg("SOL_SOCKET, %s=%d", setsockopt_so_opt_to_str(__optname), m_loops_timer.get_timeout_msec());
 			break;
 		}
 		case SO_BINDTODEVICE:
@@ -3166,6 +3166,8 @@ int sockinfo_tcp::setsockopt(int __level, int __optname,
 			} else {
 				m_so_bindtodevice_ip = sockaddr.sin_addr.s_addr;
 			}
+			si_tcp_logdbg("SOL_SOCKET, %s='%s' (%d.%d.%d.%d)", setsockopt_so_opt_to_str(__optname), (char*)__optval, NIPQUAD(m_so_bindtodevice_ip));
+
 			// handle TX side
 			if (m_p_connected_dst_entry) {
 				if (m_p_connected_dst_entry->is_offloaded()) {
@@ -3176,8 +3178,7 @@ int sockinfo_tcp::setsockopt(int __level, int __optname,
 					m_p_connected_dst_entry->set_so_bindtodevice_addr(m_so_bindtodevice_ip);
 				}
 			}
-			// TODO handle RX side
-			si_tcp_logdbg("(SO_BINDTODEVICE) interface=%s", (char*)__optval);
+			// handle RX side - TODO
 			break;
 		default:
 			ret = SOCKOPT_HANDLE_BY_OS;

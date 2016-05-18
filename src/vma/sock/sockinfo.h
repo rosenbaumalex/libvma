@@ -58,6 +58,9 @@
 #define MAX_RX_MEM_BUF_DESC		32
 #define SI_RX_EPFD_EVENT_MAX		16
 
+const char * setsockopt_so_opt_to_str(int opt);
+const char * setsockopt_ip_opt_to_str(int opt);
+
 struct buff_info_t {
 		buff_info_t(){
 			rx_reuse.set_id("buff_info_t (%p) : rx_reuse", this);

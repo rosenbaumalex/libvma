@@ -60,6 +60,38 @@
 
 #define si_logdbg_no_funcname(log_fmt, log_args...)	do { if (g_vlogger_level >= VLOG_DEBUG) vlog_printf(VLOG_DEBUG, MODULE_NAME "[fd=%d]:%d: " log_fmt "\n", m_fd, __LINE__, ##log_args); } while (0)
 
+const char * setsockopt_so_opt_to_str(int opt)
+{
+	switch (opt) {
+	case SO_REUSEADDR: 		return "SO_REUSEADDR";
+	case SO_BROADCAST:	 	return "SO_BROADCAST";
+	case SO_SNDBUF:			return "SO_SNDBUF";
+	case SO_RCVBUF:			return "SO_RCVBUF";
+	case SO_KEEPALIVE:		return "SO_KEEPALIVE";
+	case SO_LINGER:			return "SO_LINGER";
+	case SO_RCVTIMEO:		return "SO_RCVTIMEO";
+	case SO_BINDTODEVICE:		return "SO_BINDTODEVICE";
+	case SO_TIMESTAMP:		return "SO_TIMESTAMP";
+	case SO_TIMESTAMPNS:		return "SO_TIMESTAMPNS";
+	case SO_TIMESTAMPING:		return "SO_TIMESTAMPING";
+	default:			break;
+	}
+	return "UNKNOWN SO opt";
+}
+
+const char * setsockopt_ip_opt_to_str(int opt)
+{
+	switch (opt) {
+	case IP_MULTICAST_IF:		return "IP_MULTICAST_IF";
+	case IP_MULTICAST_TTL:		return "IP_MULTICAST_TTL";
+	case IP_MULTICAST_LOOP: 	return "IP_MULTICAST_LOOP";
+	case IP_ADD_MEMBERSHIP: 	return "IP_ADD_MEMBERSHIP";
+	case IP_DROP_MEMBERSHIP:	return "IP_DROP_MEMBERSHIP";
+	default:			break;
+	}
+	return "UNKNOWN IP opt";
+}
+
 sockinfo::sockinfo(int fd) throw (vma_exception):
 		socket_fd_api(fd),
 		m_b_closed(false), m_b_blocking(true), m_protocol(PROTO_UNDEFINED),
@@ -955,3 +987,4 @@ int sockinfo::register_callback(vma_recv_callback_t callback, void *context)
 	m_rx_callback_context = context;
 	return 0;
 }
+
