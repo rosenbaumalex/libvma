@@ -580,7 +580,8 @@ unsigned sockinfo_tcp::tx_wait(int & err, bool is_blocking)
 ssize_t sockinfo_tcp::tx(const tx_call_t call_type, const struct iovec* p_iov, const ssize_t sz_iov, const int flags, const struct sockaddr *__to, const socklen_t __tolen)
 {
 	int total_tx = 0;
-	unsigned tx_size;
+	unsigned int tx_size;
+	unsigned int sndwnd = -1, sndbufbytes = -1;
 	err_t err;
 	unsigned pos = 0;
 	int ret = 0;
@@ -740,6 +741,20 @@ done:
 		m_p_socket_stats->counters.n_tx_sent_byte_count += total_tx;
 		m_p_socket_stats->counters.n_tx_sent_pkt_count++;
 		m_p_socket_stats->n_tx_ready_byte_count += total_tx;
+	}
+
+
+	// check if TCP send window is closed and if true check for pending recv'ed ACK's
+	sndwnd = tcp_sndwnd(&m_pcb);
+	sndbufbytes = tcp_sndbufbytes(&m_pcb);
+	if (sndwnd <= sndbufbytes) {
+		si_tcp_logfunc("sndbufbytes=%d sndwnd=%d (before rx poll)", sndbufbytes, sndwnd);
+
+		// send window is closed, so do a single non-blocking call to
+		// check for pending recv'ed packets (and maybe ACK's)
+		// we're assuming application is not checking recv side frequently enough
+		rx_wait(poll_count, false);
+		si_tcp_logfunc("sndbufbytes=%d sndwnd=%d (after rx poll)", tcp_sndbufbytes(&m_pcb), tcp_sndwnd(&m_pcb));
 	}
 
 	tcp_output(&m_pcb); // force data out

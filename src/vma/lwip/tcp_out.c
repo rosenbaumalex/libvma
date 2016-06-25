@@ -872,7 +872,7 @@ tcp_output(struct tcp_pcb *pcb)
     return ERR_OK;
   }
 
-  wnd = LWIP_MIN(pcb->snd_wnd, pcb->cwnd);
+  wnd = tcp_sndwnd(pcb);
 
   LWIP_DEBUGF(TCP_CWND_DEBUG, ("tcp_output: snd_wnd %"U32_F", cwnd %"U32_F
    	  ", wnd %"U32_F"\n",pcb->snd_wnd, pcb->cwnd, wnd ));

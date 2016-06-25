@@ -460,7 +460,9 @@ void             tcp_poll    		(struct tcp_pcb *pcb, tcp_poll_fn poll, u8_t inte
 void             tcp_err     		(struct tcp_pcb *pcb, tcp_err_fn err);
 
 #define          tcp_mss(pcb)             (((pcb)->flags & TF_TIMESTAMP) ? ((pcb)->mss - 12)  : (pcb)->mss)
-#define          tcp_sndbuf(pcb)          ((pcb)->snd_buf)
+#define          tcp_sndbuf(pcb)          ((pcb)->snd_buf)  // Available free bytes in snd_buf
+#define          tcp_sndbufbytes(pcb)     ((pcb)->max_snd_buff - ((pcb)->snd_buf)) // Saved (sent and unsent) bytes in snd_buf pending ack
+#define          tcp_sndwnd(pcb)          (LWIP_MIN((pcb)->snd_wnd, (pcb)->cwnd))
 #define          tcp_sndqueuelen(pcb)     ((pcb)->snd_queuelen)
 #define          tcp_nagle_disable(pcb)   ((pcb)->flags |= TF_NODELAY)
 #define          tcp_nagle_enable(pcb)    ((pcb)->flags &= ~TF_NODELAY)
